@@ -1,0 +1,11 @@
+{
+  "autoload": {
+    "psr-4": {
+      "DomainCheck\\": "src/"
+    }
+  },
+  "require": {
+    "symfony/yaml": "^3.3",
+    "league/flysystem": "^1.0"
+  }
+}
