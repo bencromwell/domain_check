@@ -3,6 +3,7 @@
 namespace DomainCheck\Storage;
 
 use DomainCheck\Whois\WhoisResult;
+use League\Flysystem\FileNotFoundException;
 use League\Flysystem\FilesystemInterface;
 
 class Storage
@@ -19,17 +20,27 @@ class Storage
 
     public function save(WhoisResult $whoisResult, string $reference)
     {
-        $this->flysystem->write($reference, json_encode($whoisResult));
+        $body = json_encode($whoisResult);
+
+        if ($this->flysystem->has($reference)) {
+            $this->flysystem->update($reference, $body);
+        } else {
+            $this->flysystem->write($reference, $body);
+        }
     }
 
     public function read(string $reference): ?WhoisResult
     {
-        $json = $this->flysystem->read($reference);
+        try {
+            $json = $this->flysystem->read($reference);
 
-        if (!$json) {
+            if (!$json) {
+                return null;
+            }
+
+            return new WhoisResult(json_decode($json, true));
+        } catch (FileNotFoundException $e) {
             return null;
         }
-
-        return new WhoisResult(json_decode($json, true));
     }
 }
