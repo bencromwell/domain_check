@@ -45,9 +45,4 @@ class WhoisResult implements JsonSerializable
     {
         return $this->jsonSerialize() !== $whoisResult->jsonSerialize();
     }
-
-    public function getNotificationContents(): string
-    {
-        return print_r($this->jsonSerialize(), true);
-    }
 }

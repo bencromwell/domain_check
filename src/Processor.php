@@ -47,7 +47,7 @@ class Processor
             $this->notifier->sendNotification(
                 $this->configuration->getNotify(),
                 $this->configuration->getFrom(),
-                $domainResult->getNotificationContents()
+                $domainResult
             );
         }
 

@@ -2,7 +2,9 @@
 
 namespace DomainCheck\Notify;
 
+use DomainCheck\Whois\WhoisResult;
+
 interface Notifier
 {
-    public function sendNotification(string $to, string $from, string $contents): bool;
+    public function sendNotification(string $to, string $from, WhoisResult $whoisResult): bool;
 }
