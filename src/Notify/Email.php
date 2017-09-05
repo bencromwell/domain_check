@@ -6,10 +6,34 @@ use DomainCheck\Whois\WhoisResult;
 
 class Email implements Notifier
 {
-    public function sendNotification(string $to, string $from, WhoisResult $whoisResult): bool
+    public function sendNotification(string $to, string $from, string $domain, WhoisResult $whoisResult): bool
     {
-        echo 'dummy send! ' . $to . PHP_EOL . print_r($whoisResult, true) . PHP_EOL;
+        $message = new \Swift_Message('Domain check results: ' . $domain);
 
-        return true;
+        $message->setFrom($from);
+        $message->setTo($to);
+
+        $message->setBody($this->getHtml($whoisResult), 'text/html');
+
+        return $this->send($message);
+    }
+
+    protected function getHtml(WhoisResult $whoisResult)
+    {
+        $rows = '';
+
+        foreach ($whoisResult->jsonSerialize() as $key => $value) {
+            $rows .= '<tr><th>' . $key . '</th><td>' . $value . '</td></tr>';
+        }
+
+        return '<table>' . $rows . ' </table>';
+    }
+
+    protected function send(\Swift_Message $message): bool
+    {
+        $transport = new \Swift_SendmailTransport();
+        $mailer = new \Swift_Mailer($transport);
+
+        return $mailer->send($message);
     }
 }
