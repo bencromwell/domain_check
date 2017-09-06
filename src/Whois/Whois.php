@@ -20,7 +20,7 @@ class Whois implements WhoisService
         $data = [];
 
         foreach ($lines as $line) {
-            if (substr($line, 0, 3) === '   ') {
+            if ($this->useThisLine($line)) {
                 list($key, $value) = explode(': ', trim($line));
                 $key = str_replace(' ', '', $key);
                 $data[$key] = $value;
@@ -28,5 +28,16 @@ class Whois implements WhoisService
         }
 
         return $data;
+    }
+
+    /**
+     * If a line starts with three spaces we want it, otherwise it's just the fluff from the whois result
+     *
+     * @param string $line
+     * @return bool
+     */
+    protected function useThisLine(string $line): bool
+    {
+        return substr($line, 0, 3) === '   ';
     }
 }

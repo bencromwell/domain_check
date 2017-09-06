@@ -11,7 +11,7 @@ class Email implements Notifier
         $message = new \Swift_Message('Domain check results: ' . $domain);
 
         $message->setFrom($from);
-        $message->setTo($to);
+        $message->setTo(explode(',', $to));
 
         $message->setBody($this->getHtml($whoisResult), 'text/html');
 

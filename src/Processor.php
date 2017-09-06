@@ -7,6 +7,7 @@ use DomainCheck\Notify\Notifier;
 use DomainCheck\Storage\Storage;
 use DomainCheck\Whois\WhoisResult;
 use DomainCheck\Whois\WhoisService;
+use Psr\Log\LoggerInterface;
 
 class Processor
 {
@@ -22,12 +23,22 @@ class Processor
     /** @var Storage */
     protected $storage;
 
-    public function __construct(Configuration $configuration, WhoisService $whois, Notifier $notifier, Storage $storage)
+    /** @var LoggerInterface */
+    protected $logger;
+
+    public function __construct(
+        Configuration $configuration,
+        WhoisService $whois,
+        Notifier $notifier,
+        Storage $storage,
+        LoggerInterface $logger
+    )
     {
         $this->configuration = $configuration;
         $this->whois = $whois;
         $this->notifier = $notifier;
         $this->storage = $storage;
+        $this->logger = $logger;
     }
 
     public function processDomains()
@@ -39,17 +50,36 @@ class Processor
 
     protected function processDomain(string $domain)
     {
+        $logContext = ['domain' => $domain];
+
+        $this->logger->notice('Processing domain', $logContext);
+
         $domainResult = $this->whois->forDomain($domain);
 
         $lastRun = $this->storage->read($domain);
 
+        if (is_null($lastRun)) {
+            $this->logger->notice('This is the first run', $logContext);
+        }
+
         if ($this->shouldNotify($domainResult, $lastRun)) {
-            $this->notifier->sendNotification(
+            $this->logger->notice('Sending a notification', $logContext);
+
+            $notified = $this->notifier->sendNotification(
                 $this->configuration->getNotify(),
                 $this->configuration->getFrom(),
                 $domain,
                 $domainResult
             );
+
+            if ($notified) {
+                $this->logger->notice('Notification successful', $logContext);
+            } else {
+                $this->logger->error('Notification failed', $logContext);
+            }
+
+        } else {
+            $this->logger->notice('Not sending a notification', $logContext);
         }
 
         $this->storage->save($domainResult, $domain);
