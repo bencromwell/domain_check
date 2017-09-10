@@ -36,6 +36,11 @@ class WhoisResult implements JsonSerializable
         return $this->data[$name] ?? null;
     }
 
+    public function __set($name, $value)
+    {
+        $this->data[$name] = $value;
+    }
+
     public function jsonSerialize()
     {
         return $this->data;

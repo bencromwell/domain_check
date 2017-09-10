@@ -6,11 +6,16 @@ class Whois implements WhoisService
 {
     public function forDomain(string $domain): WhoisResult
     {
-        $rawResult = shell_exec('whois ' . $domain);
+        $rawResult = $this->rawWhois($domain);
 
         $parsedResult = $this->parseResult($rawResult);
 
         return new WhoisResult($parsedResult);
+    }
+
+    protected function rawWhois(string $domain): string
+    {
+        return shell_exec('whois ' . $domain);
     }
 
     protected function parseResult(string $whoisResult): array
@@ -21,9 +26,13 @@ class Whois implements WhoisService
 
         foreach ($lines as $line) {
             if ($this->useThisLine($line)) {
-                list($key, $value) = explode(': ', trim($line));
-                $key = str_replace(' ', '', $key);
-                $data[$key] = $value;
+                $line = trim($line);
+
+                if (strlen($line) > 0 && strpos($line, ': ') !== false) {
+                    list($key, $value) = explode(': ', $line);
+                    $key = str_replace(' ', '', $key);
+                    $data[$key] = $value;
+                }
             }
         }
 

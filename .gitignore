@@ -1,2 +1,5 @@
 config.yml
 vendor/
+tests/log
+log
+domain_check
